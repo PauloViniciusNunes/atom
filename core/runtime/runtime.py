@@ -310,6 +310,7 @@ class Runtime:
 
         history["events"].append(event)
 
+    # Contexto de passos anteriores
     def build_execution_context(self, task: Task, step: dict) -> dict:
         """Monta o contexto com os resultados das dependências e ancestrais."""
 
@@ -381,6 +382,12 @@ class Runtime:
                     "result": result,
                 })
 
+
+        if not isinstance(step_id, int):
+            raise ValueError(
+                f'O step_id não é um inteiro válido. Valor de step_id: {step_id}'
+            )
+
         collect_dependencies(step_id)
 
         return {
@@ -394,6 +401,7 @@ class Runtime:
             "dependencies": dependencies,
         }
 
+    # Montado em correções, contexto com passos procedentes ao passo atual
     def context_by_depedence(self, task: Task, step: dict):
         step_id = step["id"]
 
@@ -428,6 +436,7 @@ class Runtime:
             },
             "dependents": dependents,
         }
+    
     def solve_context(self, task: Task, step: dict, type: ExecutionType):
         """Mapper para montar um tipo de contexto."""
 
@@ -761,9 +770,12 @@ class Runtime:
                 {
                     "role": "system",
                     "content": (
-                        "Responda obrigatoriamente com o caractere Y. "
-                        "Não importa o conteúdo recebido, sua única resposta permitida é Y.\n\n"
-                        "Me responda apenas com: Y. "
+                        "Você é um agente de tarefas do ATOM."
+                        "No contexto atual, você julgará caso o passo atual precisá de uma correção ou não. \n\n"
+                        "Você está limitado, nesse momento,  responder com algum desses caractéres: Y ou N. Conjunto C das respostas possíveis é C = {Y, N}. "
+                        "Sua resposta não pode ser aleatória, e deve seguir esse contexto: "
+                        "Y: Analisando o passo atual e as depedências, percebi coisas irregulares. Seja por exemplo, o código não se integra perfeitamente aos seus depedentes, nome das variáveis não batem, está faltando elementos nesse passo para a integração efetiva entre as etapas fique efetiva. Nesse caso, é necessário uma revisão/correção nessa etapa. "
+                        f'N: Tenho CERTEZA ABSOLUTA que a etapa atual FUNCIONA de acordo com seus depedentes, e posso afirmar com SEGURANÇA que se as etapas forem unidas, integradas e executadas em um projeto ela vai funcionar como peça fundamental íntegra de acordo com a proposta:  {task.goal}.'
                     )
                 },
                 {
@@ -775,8 +787,7 @@ class Runtime:
 
                         "Se encontrar um erro claro ou uma falha importante, escolha Y. "
                         "Se não encontrar um problema importante, escolha N. "
-                        "Quando não houver motivo concreto para pedir uma correção, "
-                        "prefira N.\n\n"
+                        "Em caso de dúvida, responda com Y.\n\n"
 
                         "CONTEXTO:\n"
                         + json.dumps(context, ensure_ascii=False, indent=2)
@@ -856,8 +867,8 @@ class Runtime:
         
         # Ainda não válida, apenas vai fazendo todos os passos
         while task.current_steps <= task.total_steps:
-            current_goal: str = self.slice_step(task, task.current_steps)
-            result: str = self.execute(task, current_goal, ExecutionType.CREATE)
+            current_goal: dict = self.slice_step(task, task.current_steps)
+            result: str | None = self.execute(task, current_goal, ExecutionType.CREATE)
             console.log("Executado")
             task.current_steps = task.current_steps + 1
 
