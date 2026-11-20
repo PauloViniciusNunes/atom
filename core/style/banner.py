@@ -10,9 +10,9 @@ def show_banner():
 
     console.print(
         Panel(
-            Align.center(f"[bold cyan]{logo}[/bold cyan]"),
+            Align.center(f"[bold green]{logo}[/bold green]"),
             subtitle="[dim]Autonomous Task Orchestrator[/dim]",
-            border_style="blue",
+            border_style="green",
             padding=(1, 2),
         )
     )

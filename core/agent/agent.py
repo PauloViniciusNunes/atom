@@ -8,8 +8,8 @@ from core.agent.config.settings import (
     TEMPERATURE,
     NUM_PREDICT,
     REQUEST_TIMEOUT,
+    THINK
 )
-
 
 class Agent:
     """Interface de comunicação entre o Atom e o Ollama."""
@@ -56,6 +56,7 @@ class Agent:
                 "temperature": self.temperature,
                 "num_predict": self.num_predict,
             },
+            "think": THINK
         }
 
         request = Request(

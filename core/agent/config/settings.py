@@ -1,4 +1,3 @@
-
 import os
 
 # Ollama connection
@@ -21,6 +20,9 @@ TEMPERATURE = float(
 NUM_PREDICT = int(
     os.getenv("OLLAMA_NUM_PREDICT", "2048")
 )
+
+# Disable thinking
+THINK = False
 
 # Communication
 REQUEST_TIMEOUT = float(

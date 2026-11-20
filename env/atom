@@ -1,0 +1,25 @@
+#!/bin/bash
+set -euo pipefail
+
+# Resolve o diretório real do projeto ATOM mesmo quando invocado via symlink
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ENV_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+ATOM_HOME="$(cd -P "$ENV_DIR/.." >/dev/null 2>&1 && pwd)"
+
+PYTHON_BIN="$ATOM_HOME/.venv/bin/python"
+
+if [ ! -x "$PYTHON_BIN" ]; then
+    echo "Erro: ambiente virtual não encontrado em '$ATOM_HOME/.venv'." >&2
+    echo "Execute primeiro: $ATOM_HOME/env/build.sh" >&2
+    exit 1
+fi
+
+export ATOM_HOME
+export PYTHONPATH="$ATOM_HOME${PYTHONPATH:+:$PYTHONPATH}"
+
+exec "$PYTHON_BIN" "$ATOM_HOME/__main__.py" "$@"
